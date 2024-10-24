@@ -52,7 +52,7 @@ template:
               name: BuildAndPushDockerRegistry_1
               identifier: BuildAndPushDockerRegistry_1
               spec:
-                connectorRef: dockeral
+                connectorRef: al_docker
                 repo: alsharma9/harness-ci-bootcamp
                 tags:
                   - latest
