@@ -1,0 +1,80 @@
+template:
+  name: build_ci_lab
+  type: Stage
+  projectIdentifier: default_project
+  orgIdentifier: default
+  spec:
+    type: CI
+    spec:
+      cloneCodebase: true
+      caching:
+        enabled: true
+      platform:
+        os: Linux
+        arch: Amd64
+      runtime:
+        type: Cloud
+        spec: {}
+      execution:
+        steps:
+          - step:
+              type: RunTests
+              name: test_build
+              identifier: test_build
+              spec:
+                language: Java
+                buildTool: Gradle
+                args: clean test -Diteration=<+strategy.iteration>
+                runOnlySelectedTests: true
+                reports:
+                  type: JUnit
+                  spec:
+                    paths:
+                      - app/build/test-results/testset-<+strategy.iteration>/*.xml
+                enableTestSplitting: false
+          - step:
+              type: Run
+              name: build java binary
+              identifier: build_java_binary
+              spec:
+                shell: Sh
+                command: |-
+                  ./gradlew bootJar
+                  export current_date=$(date +"%Y.%m.%d")
+
+                  echo "<+pipeline.stages.buildjava.spec.execution.steps.build_java_binary.output.outputVariables.current_date>"
+                outputVariables:
+                  - name: current_date
+                    type: String
+                    value: current_date
+          - step:
+              type: BuildAndPushDockerRegistry
+              name: BuildAndPushDockerRegistry_1
+              identifier: BuildAndPushDockerRegistry_1
+              spec:
+                connectorRef: dockeral
+                repo: alsharma9/harness-ci-bootcamp
+                tags:
+                  - latest
+                  - <+pipeline.stages.BuildJava.spec.execution.steps.Build_Java_Binary.output.outputVariables.current_date>
+                caching: true
+          - step:
+              type: AquaTrivy
+              name: AquaTrivy_1
+              identifier: AquaTrivy_1
+              spec:
+                mode: orchestration
+                config: default
+                target:
+                  type: container
+                  detection: auto
+                advanced:
+                  log:
+                    level: info
+                privileged: true
+                image:
+                  type: docker_v2
+                  name: alsharma9/harness-ci-bootcamp
+                  tag: latest
+  identifier: build_ci_lab
+  versionLabel: v1
