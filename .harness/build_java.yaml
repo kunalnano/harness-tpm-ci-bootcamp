@@ -8,7 +8,7 @@ pipeline:
     ci:
       codebase:
         connectorRef: account.Github_OAuth_1720712151481
-        repoName: harness-tpm-ci-bootcamp
+        repoName: kunalnano/harness-tpm-ci-bootcamp
         build: <+input>
         sparseCheckout: []
   stages:
